@@ -37,7 +37,6 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Order ID</TableHead>
-                <TableHead className="hidden sm:table-cell">Customer</TableHead>
                 <TableHead className="hidden md:table-cell">Destination</TableHead>
                 <TableHead className="hidden sm:table-cell text-right">Predicted Time (m)</TableHead>
                 <TableHead className="text-right">Status</TableHead>
