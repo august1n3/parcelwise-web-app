@@ -186,4 +186,3 @@ The system handles various error scenarios:
 
 ---
 
-*For technical support or questions about the data format, please refer to the application interface or contact the development team.*
