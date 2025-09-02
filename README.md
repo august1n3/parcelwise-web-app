@@ -150,8 +150,8 @@ Cities are automatically encoded to numerical values:
 ## 🚦 Status Classification
 
 Deliveries are automatically classified based on predicted time:
-- **On Time**: ≤ 180 minutes (3 hours)
-- **Anomaly**: > 180 minutes (potential issues)
+- **On Time**: ≤ 30 minutes + (predicted_travel_time)
+- **Anomaly**: > 30 minutes + (predicted_travel_time) (potential issues)
 
 ## 📝 Error Handling
 
