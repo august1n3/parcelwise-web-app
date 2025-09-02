@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { useAction } from '@genkit-ai/next/useAction';
+import { useAction } from '@genkit-ai/next/client';
 import { uploadAndSummarizeData } from '@/ai/flows/upload-and-summarize-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ type DataUploadProps = {
 };
 
 export default function DataUpload({ onDataProcessed, setIsLoading, isLoading }: DataUploadProps) {
-  const {run: runAction} = useAction(uploadAndSummarizeData);
+  const { runAction } = useAction(uploadAndSummarizeData);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
