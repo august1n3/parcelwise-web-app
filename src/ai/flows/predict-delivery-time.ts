@@ -1,50 +1,45 @@
 'use server';
 /**
  * @fileOverview A flow for predicting delivery travel time using an external model.
- *
  * - predictDeliveryTime - A function that calls the external prediction model.
- * - DeliveryPredictionInput - The input type for the predictDeliveryTime function.
- * - DeliveryPredictionOutput - The return type for the predictDeliveryTime function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'zod';
 
-const DeliveryInfoSchema = z.object({
-    receipt_lng: z.number(),
-    receipt_lat: z.number(),
-    sign_lng: z.number(),
-    sign_lat: z.number(),
-    hour: z.number(),
-    day_of_week: z.number(),
-    distance_km: z.number(),
-    city_encoded: z.number(),
-    typecode_encoded: z.number(),
-});
+class LabelEncoder {
+  private labelMap: Map<string, number> = new Map();
+  private nextValue: number = 0;
 
-const DeliveryPredictionInputSchema = z.array(DeliveryInfoSchema);
+  fit(data: string[]): void {
+    for (const label of data) {
+      if (!this.labelMap.has(label)) {
+        this.labelMap.set(label, this.nextValue);
+        this.nextValue++;
+      }
+    }
+  }
 
-export type DeliveryPredictionInput = z.infer<typeof DeliveryPredictionInputSchema>;
+  transform(data: string[]): number[] {
+    const encodedData: number[] = [];
+    for (const label of data) {
+      if (this.labelMap.has(label)) {
+        encodedData.push(this.labelMap.get(label)!);
+      } else {
+        // Handle unknown labels, e.g., throw an error or assign a default value
+        throw new Error(`Unknown label: ${label}`);
+      }
+    }
+    return encodedData;
+  }
 
-const DeliveryPredictionOutputSchema = z.object({
-  predicted_travel_times: z.array(z.number()),
-});
-
-export type DeliveryPredictionOutput = z.infer<typeof DeliveryPredictionOutputSchema>;
-
-export async function predictDeliveryTime(
-  input: DeliveryPredictionInput
-): Promise<DeliveryPredictionOutput> {
-  return predictDeliveryTimeFlow(input);
+  fitTransform(data: string[]): number[] {
+    this.fit(data);
+    return this.transform(data);
+  }
 }
 
-const predictDeliveryTimeFlow = ai.defineFlow(
-  {
-    name: 'predictDeliveryTimeFlow',
-    inputSchema: DeliveryPredictionInputSchema,
-    outputSchema: DeliveryPredictionOutputSchema,
-  },
-  async payload => {
+
+export async function predictDeliveryTime(payload: Object) {
+  
     const response = await fetch('http://34.35.16.97:8080/predict', {
       method: 'POST',
       headers: {
@@ -61,6 +56,5 @@ const predictDeliveryTimeFlow = ai.defineFlow(
     }
 
     const result = await response.json();
-    return DeliveryPredictionOutputSchema.parse(result);
+    return result;
   }
-);

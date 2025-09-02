@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import { predictDeliveryTime } from '@/ai/flows/predict-delivery-time';
 import { uploadAndSummarizeData } from '@/ai/flows/upload-and-summarize-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +10,44 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Loader2 } from 'lucide-react';
 import type { UploadAndSummarizeDataOutput } from '@/ai/flows/upload-and-summarize-data';
+import { unknown } from 'zod';
 
 type DataUploadProps = {
   onDataProcessed: (data: UploadAndSummarizeDataOutput, fileContent: string) => void;
   setIsLoading: (isLoading: boolean) => void;
   isLoading: boolean;
 };
+
+function csvToJson(csvString: string): Record<string, any>[] {
+  const lines = csvString.split(/\r?\n/); // Split by newline, handle both \n and \r\n
+  const headers = lines[0].split(','); // Assuming comma as delimiter
+  const result: Record<string, any>[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',');
+    const obj: Record<string, any> = {};
+    for (let j = 0; j < headers.length; j++) {
+      const trimmedHeader = headers[j].trim();
+      const trimmedValue = values[j] ? values[j].trim() : '';
+
+      // Check if the value is a number
+      const numValue = Number(trimmedValue);
+      obj[trimmedHeader] = isNaN(numValue) ? trimmedValue : numValue;
+    }
+    result.push(obj);
+    const jsonString = JSON.stringify(result);
+
+    // Step 3: Log the JSON string to the console
+    console.log("Raw JSON String:");
+    console.log(jsonString);
+  }
+  return result;
+}
+
+function runAction(csvData: string) {
+  const data = csvToJson(csvData);
+  return predictDeliveryTime({ data })
+}
 
 export default function DataUpload({ onDataProcessed, setIsLoading, isLoading }: DataUploadProps) {
 
@@ -39,7 +72,7 @@ export default function DataUpload({ onDataProcessed, setIsLoading, isLoading }:
     reader.onload = async (e) => {
       const csvData = e.target?.result as string;
       try {
-        const result = await runAction({ csvData });
+        const result = await runAction(csvData);
         onDataProcessed(result, csvData);
       } catch (error) {
         console.error('Error processing data:', error);
