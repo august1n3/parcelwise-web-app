@@ -44,7 +44,7 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {deliveries.slice(0, 5).map((delivery) => (
+              {deliveries.map((delivery) => (
                 <TableRow key={delivery.id}>
                   <TableCell>
                     <div className="font-medium">{delivery.id}</div>

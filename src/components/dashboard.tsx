@@ -28,30 +28,20 @@ export default function Dashboard() {
         skip_empty_lines: true,
       });
 
-      const predictionInput = records.map((record: any) => ({
-        receipt_lng: parseFloat(record.receipt_lng),
-        receipt_lat: parseFloat(record.receipt_lat),
-        sign_lng: parseFloat(record.sign_lng),
-        sign_lat: parseFloat(record.sign_lat),
-        hour: parseInt(record.hour, 10),
-        day_of_week: parseInt(record.day_of_week, 10),
-        distance_km: parseFloat(record.distance_km),
-        city_encoded: parseInt(record.city_encoded, 10),
-        typecode_encoded: parseInt(record.typecode_encoded, 10),
-      }));
-
-      const predictionResult = await predictDeliveryTime(predictionInput);
-      
+      // Use the new predictDeliveryTime function that can handle CSV records directly
+      const predictionResult = await predictDeliveryTime(records as Record<string, any>[]);
+      console.log(records);
       const newDeliveries = records.map((record: any, index: number): Delivery => ({
         id: record.order_id || `ORD${index + 1}`,
         customerName: record.customer_name || 'N/A',
-        destination: record.destination || 'N/A',
-        status: record.status || 'Pending',
+        destination: `${record.from_city_name || 'Unknown'} to Delivery Point`,
+        status: Math.round(predictionResult.predicted_travel_times[index]) + 30 < Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime())/60000 ? 'Anomaly' : 'On Time',
         predictedDelivery: record.predicted_delivery || '',
-        deliveryDate: record.delivery_date || '',
+        deliveryDate: record.delivery_date || record.sign_time || '',
         predictedTravelTime: Math.round(predictionResult.predicted_travel_times[index]),
       }));
       
+
       setDeliveries(newDeliveries);
 
     } catch(e) {

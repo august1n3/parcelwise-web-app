@@ -2,15 +2,13 @@
 
 import { useRef } from 'react';
 import { predictDeliveryTime } from '@/ai/flows/predict-delivery-time';
-import { uploadAndSummarizeData } from '@/ai/flows/upload-and-summarize-data';
+import { uploadAndSummarizeData, type UploadAndSummarizeDataOutput } from '@/ai/flows/upload-and-summarize-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Loader2 } from 'lucide-react';
-import type { UploadAndSummarizeDataOutput } from '@/ai/flows/upload-and-summarize-data';
-import { unknown } from 'zod';
 
 type DataUploadProps = {
   onDataProcessed: (data: UploadAndSummarizeDataOutput, fileContent: string) => void;
@@ -44,9 +42,10 @@ function csvToJson(csvString: string): Record<string, any>[] {
   return result;
 }
 
-function runAction(csvData: string) {
-  const data = csvToJson(csvData);
-  return predictDeliveryTime({ data })
+async function runAction(csvData: string): Promise<UploadAndSummarizeDataOutput> {
+  // First get the summary and anomalies analysis
+  const analysisResult = await uploadAndSummarizeData({ csvData });
+  return analysisResult;
 }
 
 export default function DataUpload({ onDataProcessed, setIsLoading, isLoading }: DataUploadProps) {

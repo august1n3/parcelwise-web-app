@@ -27,6 +27,7 @@ export default function DeliveryChart({ deliveries }: { deliveries: Delivery[] }
   const chartConfig = {
     count: {
       label: 'Count',
+      color: 'hsl(var(--muted))',
     },
     'On Time': {
       label: 'On Time',
