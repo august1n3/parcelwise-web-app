@@ -25,7 +25,7 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
   };
 
   return (
-    <Card>
+    <Card className="w-fit">
       <CardHeader>
         <CardTitle>Deliveries Overview</CardTitle>
         <CardDescription>An overview of delivery statuses and recent items.</CardDescription>
@@ -48,9 +48,7 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
                 <TableRow key={delivery.id}>
                   <TableCell>
                     <div className="font-medium">{delivery.id}</div>
-                    <div className="text-sm text-muted-foreground md:hidden">{delivery.customerName}</div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">{delivery.customerName}</TableCell>
                   <TableCell className="hidden md:table-cell">{delivery.destination}</TableCell>
                   <TableCell className="hidden sm:table-cell text-right">
                     {delivery.predictedTravelTime !== undefined ? delivery.predictedTravelTime : 'N/A'}

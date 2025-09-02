@@ -33,7 +33,7 @@ export default function Dashboard() {
       console.log(records);
       const newDeliveries = records.map((record: any, index: number): Delivery => ({
         id: record.order_id || `ORD${index + 1}`,
-        customerName: record.customer_name || 'N/A',
+        customerName: record.delivery_user_id || 'N/A',
         destination: `${record.from_city_name || 'Unknown'} to Delivery Point`,
         status: Math.round(predictionResult.predicted_travel_times[index]) + 30 < Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime())/60000 ? 'Anomaly' : 'On Time',
         predictedDelivery: record.predicted_delivery || '',
