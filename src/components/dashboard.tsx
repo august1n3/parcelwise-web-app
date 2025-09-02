@@ -8,18 +8,60 @@ import KpiCards from '@/components/dashboard/kpi-cards';
 import DataUpload from '@/components/dashboard/data-upload';
 import AiSummary from '@/components/dashboard/ai-summary';
 import DeliveryData from '@/components/dashboard/delivery-data';
+import { predictDeliveryTime } from '@/ai/flows/predict-delivery-time';
+import { useToast } from '@/hooks/use-toast';
+import { parse as parseCsv } from 'csv-parse/sync';
+
 
 export default function Dashboard() {
   const [summaryData, setSummaryData] = useState<UploadAndSummarizeDataOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [deliveries, setDeliveries] = useState<Delivery[]>(MOCK_DELIVERIES);
+  const { toast } = useToast();
 
-  const handleDataProcessed = (data: UploadAndSummarizeDataOutput, fileContent: string) => {
+  const handleDataProcessed = async (data: UploadAndSummarizeDataOutput, fileContent: string) => {
     setSummaryData(data);
-    // In a real app, you would parse the `fileContent` (CSV) 
-    // and update the `deliveries` state to reflect the uploaded data.
-    // For this demo, we'll just log it and keep the mock data.
-    console.log("CSV content received, ready for parsing:", fileContent.substring(0, 200) + '...');
+    
+    try {
+      const records = parseCsv(fileContent, {
+        columns: true,
+        skip_empty_lines: true,
+      });
+
+      const predictionInput = records.map((record: any) => ({
+        receipt_lng: parseFloat(record.receipt_lng),
+        receipt_lat: parseFloat(record.receipt_lat),
+        sign_lng: parseFloat(record.sign_lng),
+        sign_lat: parseFloat(record.sign_lat),
+        hour: parseInt(record.hour, 10),
+        day_of_week: parseInt(record.day_of_week, 10),
+        distance_km: parseFloat(record.distance_km),
+        city_encoded: parseInt(record.city_encoded, 10),
+        typecode_encoded: parseInt(record.typecode_encoded, 10),
+      }));
+
+      const predictionResult = await predictDeliveryTime(predictionInput);
+      
+      const newDeliveries = records.map((record: any, index: number): Delivery => ({
+        id: record.order_id || `ORD${index + 1}`,
+        customerName: record.customer_name || 'N/A',
+        destination: record.destination || 'N/A',
+        status: record.status || 'Pending',
+        predictedDelivery: record.predicted_delivery || '',
+        deliveryDate: record.delivery_date || '',
+        predictedTravelTime: Math.round(predictionResult.predicted_travel_times[index]),
+      }));
+      
+      setDeliveries(newDeliveries);
+
+    } catch(e) {
+      console.error('Error processing or predicting from CSV:', e);
+      toast({
+        variant: 'destructive',
+        title: 'CSV Processing Failed',
+        description: 'Could not parse the CSV file or get predictions. Please check the file format and try again.',
+      });
+    }
   };
 
   const anomalyCount = deliveries.filter(d => d.status === 'Anomaly').length;

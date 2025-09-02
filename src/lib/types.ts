@@ -5,4 +5,5 @@ export type Delivery = {
   status: 'On Time' | 'Delayed' | 'Delivered' | 'Pending' | 'Anomaly';
   predictedDelivery: string;
   deliveryDate: string;
+  predictedTravelTime?: number;
 };

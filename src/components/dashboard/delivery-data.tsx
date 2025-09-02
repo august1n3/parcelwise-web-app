@@ -39,6 +39,7 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
                 <TableHead>Order ID</TableHead>
                 <TableHead className="hidden sm:table-cell">Customer</TableHead>
                 <TableHead className="hidden md:table-cell">Destination</TableHead>
+                <TableHead className="hidden sm:table-cell text-right">Predicted Time (m)</TableHead>
                 <TableHead className="text-right">Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -51,6 +52,9 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{delivery.customerName}</TableCell>
                   <TableCell className="hidden md:table-cell">{delivery.destination}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-right">
+                    {delivery.predictedTravelTime !== undefined ? delivery.predictedTravelTime : 'N/A'}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Badge variant={getBadgeVariant(delivery.status)} className="capitalize">
                       {delivery.status}
