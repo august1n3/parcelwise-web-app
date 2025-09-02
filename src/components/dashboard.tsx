@@ -30,7 +30,7 @@ export default function Dashboard() {
 
       // Use the new predictDeliveryTime function that can handle CSV records directly
       const predictionResult = await predictDeliveryTime(records as Record<string, any>[]);
-      console.log(records);
+
       const newDeliveries = records.map((record: any, index: number): Delivery => ({
         id: record.order_id || `ORD${index + 1}`,
         customerName: record.delivery_user_id || 'N/A',

@@ -34,7 +34,6 @@ export async function predictDeliveryTime(
     throw new Error('Invalid input format for predictDeliveryTime');
   }
   
-  console.log('Transformed prediction data:', JSON.stringify(predictionData, null, 2));
   
   const response = await fetch('http://34.35.16.97:8080/predict', {
     method: 'POST',
@@ -44,8 +43,6 @@ export async function predictDeliveryTime(
     body: JSON.stringify(predictionData),
   });
   
-  console.log('Request payload:', JSON.stringify(predictionData));
-  console.log('Response status:', response.status);
   
   if (!response.ok) {
     const errorText = await response.text();

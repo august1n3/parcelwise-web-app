@@ -35,9 +35,6 @@ function csvToJson(csvString: string): Record<string, any>[] {
     result.push(obj);
     const jsonString = JSON.stringify(result);
 
-    // Step 3: Log the JSON string to the console
-    console.log("Raw JSON String:");
-    console.log(jsonString);
   }
   return result;
 }
