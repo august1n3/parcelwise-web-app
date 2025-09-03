@@ -48,7 +48,7 @@ export default function DeliveryChart({ deliveries }: { deliveries: Delivery[] }
   } satisfies ChartConfig;
 
   return (
-    <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+    <ChartContainer config={chartConfig} className=" w-full">
       <BarChart accessibilityLayer data={chartData}>
         <CartesianGrid vertical={false} />
         <XAxis

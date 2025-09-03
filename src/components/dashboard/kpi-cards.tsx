@@ -12,7 +12,7 @@ export default function KpiCards({ totalDeliveries, onTimeCount, anomalyCount }:
 
   return (
     <>
-      <Card className='min-w-md max-w-sm'>
+      <Card >
         <CardHeader className="max-w-sm flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Deliveries</CardTitle>
           <Package className="h-4 w-4 text-muted-foreground" />
@@ -22,7 +22,7 @@ export default function KpiCards({ totalDeliveries, onTimeCount, anomalyCount }:
           <p className="text-xs text-muted-foreground">in current dataset</p>
         </CardContent>
       </Card>
-      <Card className='min-w-md max-w-sm'>
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">On-Time Rate</CardTitle>
           <Truck className="h-4 w-4 text-muted-foreground" />
@@ -32,7 +32,7 @@ export default function KpiCards({ totalDeliveries, onTimeCount, anomalyCount }:
           <p className="text-xs text-muted-foreground">{onTimeCount} successful deliveries</p>
         </CardContent>
       </Card>
-      <Card className='min-w-md max-w-sm'>
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Anomalies Detected</CardTitle>
           <AlertTriangle className="h-4 w-4 text-accent" />

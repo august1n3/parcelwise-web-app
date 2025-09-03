@@ -25,7 +25,7 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
   };
 
   return (
-    <Card className="w-fit">
+    <Card>
       <CardHeader>
         <CardTitle>Deliveries Overview</CardTitle>
         <CardDescription>An overview of delivery statuses and recent items.</CardDescription>
@@ -43,7 +43,7 @@ export default function DeliveryData({ deliveries }: DeliveryDataProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {deliveries.map((delivery) => (
+              {deliveries.slice(30, 90).map((delivery) => (
                 <TableRow key={delivery.id}>
                   <TableCell>
                     <div className="font-medium">{delivery.id}</div>

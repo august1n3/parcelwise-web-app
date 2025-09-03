@@ -1,3 +1,4 @@
+import { summarizeAnomalies } from '@/ai/flows/summarize-anomalies';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bot } from 'lucide-react';
@@ -8,7 +9,19 @@ type AiSummaryProps = {
   anomalies?: string;
 };
 
+async function runAction(anomalies: string | undefined) {
+  const anomaliesSummary = await summarizeAnomalies({ anomalies: anomalies || '', timePeriod: new Date().toTimeString() });
+  return anomaliesSummary;
+}
+
 export default function AiSummary({ isLoading, summary, anomalies }: AiSummaryProps) {
+
+  const handleSummary = async () => {
+    //anomalies = (await runAction(anomalies)).summary;
+    //console.log('Anomalies Summary:', anomalies);
+  
+  };
+
   if (isLoading) {
     return (
       <Card className="animate-pulse">
@@ -39,7 +52,7 @@ export default function AiSummary({ isLoading, summary, anomalies }: AiSummaryPr
   }
   
   return (
-    <Card>
+    <Card onLoad={handleSummary}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> AI Analysis</CardTitle>
         <CardDescription>Insights generated from your delivery data.</CardDescription>

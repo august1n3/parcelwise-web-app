@@ -30,13 +30,12 @@ export default function Dashboard() {
 
       // Use the new predictDeliveryTime function that can handle CSV records directly
       const predictionResult = await predictDeliveryTime(records as Record<string, any>[]);
-
       const newDeliveries = records.map((record: any, index: number): Delivery => ({
         id: record.order_id || `ORD${index + 1}`,
         customerName: record.delivery_user_id || 'N/A',
         destination: `${record.from_city_name || 'Unknown'} to Delivery Point`,
-        status: Math.round(predictionResult.predicted_travel_times[index]) + 30 < Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime())/60000 ? 'Anomaly' : 'On Time',
-        predictedDelivery: record.predicted_delivery || '',
+        status: index in (summaryData?.list || []) ? 'Anomaly' : 'On Time',
+        actualTravelTime: Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime()) / 60000,
         deliveryDate: record.delivery_date || record.sign_time || '',
         predictedTravelTime: Math.round(predictionResult.predicted_travel_times[index]),
       }));
@@ -62,7 +61,7 @@ export default function Dashboard() {
   return (
     <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
       <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
           <KpiCards 
             totalDeliveries={totalDeliveries}
             onTimeCount={onTimeCount}
@@ -72,7 +71,7 @@ export default function Dashboard() {
         <DeliveryData deliveries={deliveries} />
       </div>
       <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-1">
-        <DataUpload onDataProcessed={handleDataProcessed} setIsLoading={setIsLoading} isLoading={isLoading} />
+        <DataUpload onDataProcessed={handleDataProcessed} setIsLoading={setIsLoading} isLoading={isLoading} predictedTravelTimes={deliveries.map(d => d.predictedTravelTime || 0)} />
         {isLoading || summaryData ? (
           <AiSummary 
             isLoading={isLoading} 

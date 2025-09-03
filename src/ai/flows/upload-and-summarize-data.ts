@@ -11,11 +11,14 @@ import { parse as parseCsv } from 'csv-parse/sync';
 
 export interface UploadAndSummarizeDataInput {
   csvData: string;
+  predictedTravelTimes: number[];
 }
 
 export interface UploadAndSummarizeDataOutput {
   summary: string;
   anomalies: string;
+  count: number;
+  list: number[];
 }
 
 // Helper function to calculate basic statistics
@@ -35,8 +38,8 @@ function calculateStats(values: number[]) {
 }
 
 // Helper function to detect anomalies using IQR method
-function detectAnomalies(values: number[], threshold: number = 1.5) {
-  const sorted = [...values].sort((a, b) => a - b);
+function detectAnomalies(deliveries: number[], errors: number[], threshold: number = 1.5) {
+  const sorted = [...errors].sort((a, b) => a - b);
   const q1Index = Math.floor(sorted.length * 0.25);
   const q3Index = Math.floor(sorted.length * 0.75);
   const q1 = sorted[q1Index];
@@ -45,12 +48,11 @@ function detectAnomalies(values: number[], threshold: number = 1.5) {
   
   const lowerBound = q1 - threshold * iqr;
   const upperBound = q3 + threshold * iqr;
-  
-  return values.map((value, index) => ({
+  return deliveries.map((value, index) => ({
     index,
     value,
-    isAnomaly: value < lowerBound || value > upperBound,
-    type: value < lowerBound ? 'low' : value > upperBound ? 'high' : 'normal'
+    isAnomaly: errors[index] < lowerBound || errors[index] > upperBound,
+    type: errors[index] < lowerBound ? 'low' : errors[index] > upperBound ? 'high' : 'normal'
   }));
 }
 
@@ -65,7 +67,9 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
     if (records.length === 0) {
       return {
         summary: 'No data found in the uploaded file.',
-        anomalies: 'No anomalies detected due to lack of data.'
+        anomalies: 'No anomalies detected due to lack of data.',
+        count: 0,
+        list: []
       };
     }
     
@@ -75,6 +79,7 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
     const cities = new Set<string>();
     const typeCodes = new Set<string>();
     
+
     for (const record of records) {
       const csvRecord = record as Record<string, any>;
       // Calculate delivery time in minutes
@@ -114,12 +119,23 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
     
     // Detect anomalies
     let anomaliesText = 'No anomalies detected.';
+    let anomalyCount = 0;
+    let anomalyList: number[] = [];
     if (deliveryTimes.length > 0) {
-      const anomalies = detectAnomalies(deliveryTimes);
-      const anomalyCount = anomalies.filter(a => a.isAnomaly).length;
+      const errors: number[] = deliveryTimes.map((time, index) => {
+        const predicted = input.predictedTravelTimes[index];
+        return predicted ? Math.abs(predicted - time) : 0;
+      });
+
+      const anomalies = detectAnomalies(deliveryTimes, errors);
+      anomalyCount = anomalies.filter(a => a.isAnomaly).length;
+      
       const highAnomalies = anomalies.filter(a => a.type === 'high');
       const lowAnomalies = anomalies.filter(a => a.type === 'low');
       
+      highAnomalies.forEach(a => anomalyList.push(a.index));
+      lowAnomalies.forEach(a => anomalyList.push(a.index));
+
       if (anomalyCount > 0) {
         anomaliesText = `Detected ${anomalyCount} anomalies in delivery times:\n`;
         if (highAnomalies.length > 0) {
@@ -133,14 +149,18 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
     
     return {
       summary,
-      anomalies: anomaliesText
+      anomalies: anomaliesText,
+      count: anomalyCount,
+      list: anomalyList
     };
     
   } catch (error) {
     console.error('Error analyzing CSV data:', error);
     return {
       summary: 'Error analyzing the uploaded data. Please check the CSV format.',
-      anomalies: 'Unable to detect anomalies due to data processing error.'
+      anomalies: 'Unable to detect anomalies due to data processing error.',
+      count: 0,
+      list: []
     };
   }
 }

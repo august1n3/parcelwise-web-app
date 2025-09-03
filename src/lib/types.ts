@@ -3,7 +3,7 @@ export type Delivery = {
   customerName: string;
   destination: string;
   status: 'On Time' | 'Delayed' | 'Delivered' | 'Pending' | 'Anomaly';
-  predictedDelivery: string;
+  actualTravelTime: number;
   deliveryDate: string;
   predictedTravelTime?: number;
 };

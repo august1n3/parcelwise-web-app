@@ -14,6 +14,7 @@ type DataUploadProps = {
   onDataProcessed: (data: UploadAndSummarizeDataOutput, fileContent: string) => void;
   setIsLoading: (isLoading: boolean) => void;
   isLoading: boolean;
+  predictedTravelTimes: number[];
 };
 
 function csvToJson(csvString: string): Record<string, any>[] {
@@ -39,13 +40,13 @@ function csvToJson(csvString: string): Record<string, any>[] {
   return result;
 }
 
-async function runAction(csvData: string): Promise<UploadAndSummarizeDataOutput> {
+async function runAction(csvData: string, predictedTravelTimes: number[]): Promise<UploadAndSummarizeDataOutput> {
   // First get the summary and anomalies analysis
-  const analysisResult = await uploadAndSummarizeData({ csvData });
+  const analysisResult = await uploadAndSummarizeData({ csvData, predictedTravelTimes });
   return analysisResult;
 }
 
-export default function DataUpload({ onDataProcessed, setIsLoading, isLoading }: DataUploadProps) {
+export default function DataUpload({ onDataProcessed, setIsLoading, isLoading, predictedTravelTimes }: DataUploadProps) {
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,7 +69,7 @@ export default function DataUpload({ onDataProcessed, setIsLoading, isLoading }:
     reader.onload = async (e) => {
       const csvData = e.target?.result as string;
       try {
-        const result = await runAction(csvData);
+        const result = await runAction(csvData, predictedTravelTimes);
         onDataProcessed(result, csvData);
       } catch (error) {
         console.error('Error processing data:', error);
