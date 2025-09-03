@@ -2,6 +2,7 @@ import { summarizeAnomalies } from '@/ai/flows/summarize-anomalies';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bot } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 type AiSummaryProps = {
   isLoading: boolean;
@@ -16,11 +17,21 @@ async function runAction(anomalies: string | undefined) {
 
 export default function AiSummary({ isLoading, summary, anomalies }: AiSummaryProps) {
 
+  const [anomaliesSummary, setAnomaliesSummary] = useState<string | undefined>(undefined);
+
   const handleSummary = async () => {
-    //anomalies = (await runAction(anomalies)).summary;
-    //console.log('Anomalies Summary:', anomalies);
-  
+    // Only run if anomalies data is present and we haven't already generated a summary
+    if (anomalies && !anomaliesSummary) {
+      const response = await runAction(anomalies);
+      setAnomaliesSummary(response.summary);
+      console.log('Anomalies Summary:', response.summary);
+    }
   };
+
+  // Use useEffect to call handleSummary after the component mounts and when `anomalies` data changes.
+  useEffect(() => {
+    handleSummary();
+  }, [anomalies]);
 
   if (isLoading) {
     return (
@@ -67,7 +78,7 @@ export default function AiSummary({ isLoading, summary, anomalies }: AiSummaryPr
         {anomalies && (
           <div>
             <h3 className="font-semibold mb-2 text-foreground">Detected Anomalies</h3>
-            <p className="text-muted-foreground whitespace-pre-wrap">{anomalies}</p>
+            <p className="text-muted-foreground whitespace-pre-wrap">{anomaliesSummary || anomalies }</p>
           </div>
         )}
       </CardContent>
