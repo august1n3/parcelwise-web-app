@@ -53,7 +53,7 @@ export default function Dashboard() {
           id: record.order_id || `ORD${index + 1}`,
           customerName: record.delivery_user_id || 'N/A',
           destination: `${record.from_city_name || 'Unknown'} to Delivery Point`,
-          status: isAnomaly ? 'Anomaly' : 'On Time',
+          status: isAnomaly ? 'Anomaly' : (Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime()) / 60000) > predictionResult.predicted_travel_times[index] ? 'Delayed' : 'On Time',
           actualTravelTime: Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime()) / 60000,
           deliveryDate: record.delivery_date || record.sign_time || '',
           predictedTravelTime: Math.round(predictionResult.predicted_travel_times[index]),
