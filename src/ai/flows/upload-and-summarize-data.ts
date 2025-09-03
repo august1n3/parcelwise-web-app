@@ -38,16 +38,17 @@ function calculateStats(values: number[]) {
 }
 
 // Helper function to detect anomalies using IQR method
-function detectAnomalies(deliveries: number[], errors: number[], threshold: number = 1.5) {
+function detectAnomalies(deliveries: number[], errors: number[], threshold: number = 0.5) {
   const sorted = [...errors].sort((a, b) => a - b);
   const q1Index = Math.floor(sorted.length * 0.25);
   const q3Index = Math.floor(sorted.length * 0.75);
   const q1 = sorted[q1Index];
   const q3 = sorted[q3Index];
   const iqr = q3 - q1;
-  
+
   const lowerBound = q1 - threshold * iqr;
   const upperBound = q3 + threshold * iqr;
+  console.log('Anomaly Detection Bounds:', { lowerBound, upperBound });
   return deliveries.map((value, index) => ({
     index,
     value,
@@ -128,7 +129,7 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
       
       const errors: number[] = deliveryTimes.slice(0, maxLength).map((time, index) => {
         const predicted = input.predictedTravelTimes[index];
-        return predicted ? Math.abs(predicted - time) : 0;
+        return predicted ?  time -  predicted : 0;
       });
 
       if (errors.length > 0 && errors.some(e => e > 0)) {
@@ -139,8 +140,9 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
         const lowAnomalies = anomalies.filter(a => a.type === 'low');
         
         highAnomalies.forEach(a => anomalyList.push(a.index));
+        console.log('Anomaly List:', anomalyList);
         lowAnomalies.forEach(a => anomalyList.push(a.index));
-
+        console.log('Anomaly List:', anomalyList);
         if (anomalyCount > 0) {
           anomaliesText = `Detected ${anomalyCount} anomalies in delivery times:\n`;
           if (highAnomalies.length > 0) {
