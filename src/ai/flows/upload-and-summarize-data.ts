@@ -121,29 +121,52 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
     let anomaliesText = 'No anomalies detected.';
     let anomalyCount = 0;
     let anomalyList: number[] = [];
-    if (deliveryTimes.length > 0) {
-      const errors: number[] = deliveryTimes.map((time, index) => {
+    
+    if (deliveryTimes.length > 0 && input.predictedTravelTimes && input.predictedTravelTimes.length > 0) {
+      // Ensure we don't go beyond the available predicted times
+      const maxLength = Math.min(deliveryTimes.length, input.predictedTravelTimes.length);
+      
+      const errors: number[] = deliveryTimes.slice(0, maxLength).map((time, index) => {
         const predicted = input.predictedTravelTimes[index];
         return predicted ? Math.abs(predicted - time) : 0;
       });
 
-      const anomalies = detectAnomalies(deliveryTimes, errors);
-      anomalyCount = anomalies.filter(a => a.isAnomaly).length;
-      
-      const highAnomalies = anomalies.filter(a => a.type === 'high');
-      const lowAnomalies = anomalies.filter(a => a.type === 'low');
-      
-      highAnomalies.forEach(a => anomalyList.push(a.index));
-      lowAnomalies.forEach(a => anomalyList.push(a.index));
+      if (errors.length > 0 && errors.some(e => e > 0)) {
+        const anomalies = detectAnomalies(deliveryTimes.slice(0, maxLength), errors);
+        anomalyCount = anomalies.filter(a => a.isAnomaly).length;
+        
+        const highAnomalies = anomalies.filter(a => a.type === 'high');
+        const lowAnomalies = anomalies.filter(a => a.type === 'low');
+        
+        highAnomalies.forEach(a => anomalyList.push(a.index));
+        lowAnomalies.forEach(a => anomalyList.push(a.index));
 
+        if (anomalyCount > 0) {
+          anomaliesText = `Detected ${anomalyCount} anomalies in delivery times:\n`;
+          if (highAnomalies.length > 0) {
+            anomaliesText += `• ${highAnomalies.length} unusually long delivery times (avg: ${(highAnomalies.reduce((sum, a) => sum + a.value, 0) / highAnomalies.length).toFixed(1)} minutes)\n`;
+          }
+          if (lowAnomalies.length > 0) {
+            anomaliesText += `• ${lowAnomalies.length} unusually short delivery times (avg: ${(lowAnomalies.reduce((sum, a) => sum + a.value, 0) / lowAnomalies.length).toFixed(1)} minutes)`;
+          }
+        }
+      }
+    } else if (deliveryTimes.length > 0) {
+      // If we have delivery times but no predictions, we can still do basic statistical anomaly detection
+      const stats = calculateStats(deliveryTimes);
+      const threshold = 2; // 2 standard deviations
+      const lowerBound = stats.mean - threshold * stats.stdDev;
+      const upperBound = stats.mean + threshold * stats.stdDev;
+      
+      deliveryTimes.forEach((time, index) => {
+        if (time < lowerBound || time > upperBound) {
+          anomalyList.push(index);
+          anomalyCount++;
+        }
+      });
+      
       if (anomalyCount > 0) {
-        anomaliesText = `Detected ${anomalyCount} anomalies in delivery times:\n`;
-        if (highAnomalies.length > 0) {
-          anomaliesText += `• ${highAnomalies.length} unusually long delivery times (avg: ${(highAnomalies.reduce((sum, a) => sum + a.value, 0) / highAnomalies.length).toFixed(1)} minutes)\n`;
-        }
-        if (lowAnomalies.length > 0) {
-          anomaliesText += `• ${lowAnomalies.length} unusually short delivery times (avg: ${(lowAnomalies.reduce((sum, a) => sum + a.value, 0) / lowAnomalies.length).toFixed(1)} minutes)`;
-        }
+        anomaliesText = `Detected ${anomalyCount} statistical anomalies in delivery times (based on ${threshold} standard deviations from mean).`;
       }
     }
     
