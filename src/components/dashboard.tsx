@@ -45,7 +45,18 @@ export default function Dashboard() {
         csvData: fileContent,
         predictedTravelTimes: predictionResult.predicted_travel_times
       });
-      
+      function parseDateString(dateStr: string): Date {
+        // Split the date string into its components
+        const [datePart, timePart] = dateStr.split(' ');
+        const [month, day] = datePart.split('-').map(Number);
+        const [hour, minute, second] = timePart.split(':').map(Number);
+
+        // The Date constructor uses a 0-indexed month (0 = January)
+        // We use a placeholder for the year as your string doesn't include one.
+        const currentYear = new Date().getFullYear();
+
+        return new Date(currentYear, month - 1, day, hour, minute, second);
+      }
       // Fourth, create delivery objects with all correct data
       const newDeliveries = records.map((record: any, index: number): Delivery => {
         const isAnomaly = analysisResult.list.includes(index);
@@ -53,12 +64,15 @@ export default function Dashboard() {
           id: record.order_id || `ORD${index + 1}`,
           customerName: record.delivery_user_id || 'N/A',
           destination: `${record.from_city_name || 'Unknown'} to Delivery Point`,
-          status: isAnomaly ? 'Anomaly' : (Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime()) / 60000) > predictionResult.predicted_travel_times[index] ? 'Delayed' : 'On Time',
-          actualTravelTime: Math.abs(new Date(record.receipt_time).getTime() - new Date(record.sign_time).getTime()) / 60000,
+          status: isAnomaly ? 'Anomaly' : (Math.abs(parseDateString(record.receipt_time).getTime() - parseDateString(record.sign_time).getTime()) / 60000) > predictionResult.predicted_travel_times[index] ? 'Delayed' : 'On Time',
+          actualTravelTime: Math.abs(parseDateString(record.receipt_time).getTime() - parseDateString(record.sign_time).getTime()) / 60000,
           deliveryDate: record.delivery_date || record.sign_time || '',
           predictedTravelTime: Math.round(predictionResult.predicted_travel_times[index]),
         };
       });
+
+      console.log('New Deliveries:', records);
+      console.log('Predicted Travel Times:', predictionResult.predicted_travel_times);
       
       // Finally, update state with all processed data
       setSummaryData(analysisResult);
