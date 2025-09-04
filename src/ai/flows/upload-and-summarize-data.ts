@@ -78,7 +78,6 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
     const deliveryTimes: number[] = [];
     const distances: number[] = [];
     const cities = new Set<string>();
-    const typeCodes = new Set<string>();
     
 
     for (const record of records) {
@@ -95,19 +94,17 @@ export async function uploadAndSummarizeData(input: UploadAndSummarizeDataInput)
       
       // Collect other metrics
       if (csvRecord.from_city_name) cities.add(csvRecord.from_city_name);
-      if (csvRecord.typecode) typeCodes.add(csvRecord.typecode);
     }
     
     // Generate summary
     const deliveryStats = deliveryTimes.length > 0 ? calculateStats(deliveryTimes) : null;
     const totalOrders = records.length;
     const uniqueCities = cities.size;
-    const uniqueTypesCodes = typeCodes.size;
+    
     
     let summary = `Dataset Summary:\n`;
     summary += `• Total Orders: ${totalOrders}\n`;
     summary += `• Unique Cities: ${uniqueCities}\n`;
-    summary += `• Unique Type Codes: ${uniqueTypesCodes}\n`;
     
     if (deliveryStats) {
       summary += `\nDelivery Time Analysis:\n`;

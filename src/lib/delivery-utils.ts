@@ -6,13 +6,12 @@
 export interface DeliveryPredictionInput {
   receipt_lng: number;
   receipt_lat: number;
-  sign_lng: number;
-  sign_lat: number;
+  poi_lng: number;
+  poi_lat: number;
   hour: number;
   day_of_week: number;
   distance_km: number;
   city_encoded: number;
-  typecode_encoded: number;
 }
 
 export interface PredictionResponse {
@@ -46,7 +45,7 @@ export function encodeCityName(cityName: string): number {
 }
 
 // CSV field mapping based on the provided order:
-// order_id,from_dipan_id,from_city_name,delivery_user_id,poi_lng,poi_lat,aoi_id,typecode,receipt_time,receipt_lng,receipt_lat,sign_time,sign_lng,sign_lat,ds
+// order_id,from_dipan_id,from_city_name,delivery_user_id,poi_lng,poi_lat,aoi_id,receipt_time,receipt_lng,receipt_lat,sign_time,poi_lng,poi_lat,ds
 export function transformCsvToModelInput(csvRecord: Record<string, any>): DeliveryPredictionInput {
   // Extract time features from receipt_time
   const receiptDate = new Date(csvRecord.receipt_time);
@@ -57,25 +56,22 @@ export function transformCsvToModelInput(csvRecord: Record<string, any>): Delive
   const distance_km = calculateDistance(
     parseFloat(csvRecord.receipt_lat),
     parseFloat(csvRecord.receipt_lng),
-    parseFloat(csvRecord.sign_lat),
-    parseFloat(csvRecord.sign_lng)
+    parseFloat(csvRecord.poi_lat),
+    parseFloat(csvRecord.poi_lng)
   );
   
   // Encode city name (you may need to adjust this based on your encoding logic)
   const city_encoded = encodeCityName(csvRecord.from_city_name);
   
-  // Encode typecode
-  const typecode_encoded = parseInt(csvRecord.typecode) || 0;
   
   return {
     receipt_lng: parseFloat(csvRecord.receipt_lng),
     receipt_lat: parseFloat(csvRecord.receipt_lat),
-    sign_lng: parseFloat(csvRecord.sign_lng),
-    sign_lat: parseFloat(csvRecord.sign_lat),
+    poi_lng: parseFloat(csvRecord.poi_lng),
+    poi_lat: parseFloat(csvRecord.poi_lat),
     hour,
     day_of_week,
     distance_km,
-    city_encoded,
-    typecode_encoded
+    city_encoded
   };
 }

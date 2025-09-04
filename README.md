@@ -12,7 +12,7 @@ Upload your delivery CSV files and get instant analysis. The system automaticall
 
 **Supported CSV Format:**
 ```csv
-order_id,from_dipan_id,from_city_name,delivery_user_id,poi_lng,poi_lat,aoi_id,typecode,receipt_time,receipt_lng,receipt_lat,sign_time,sign_lng,sign_lat,ds
+order_id,from_dipan_id,from_city_name,delivery_user_id,poi_lng,poi_lat,aoi_id,receipt_time,receipt_lng,receipt_lat,sign_time,poi_lng,poi_lat,ds
 ORD001,DIP123,Dar es Salaam,USER456,35.73888,-6.17520,AOI789,0,2024-01-15 10:30:00,35.73888,-6.17520,2024-01-15 12:45:00,35.77238,-6.19175,2024-01-15
 ```
 
@@ -35,13 +35,12 @@ Predicts delivery times using an external machine learning model.
   {
     "receipt_lng": 35.73888,
     "receipt_lat": -6.17520,
-    "sign_lng": 35.77238,
-    "sign_lat": -6.19175,
+    "poi_lng": 35.77238,
+    "poi_lat": -6.19175,
     "hour": 15,
     "day_of_week": 4,
     "distance_km": 10.2,
-    "city_encoded": 3,
-    "typecode_encoded": 0
+    "city_encoded": 3
   }
 ]
 ```
